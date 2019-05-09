@@ -1,0 +1,132 @@
+buildscript {
+    dependencies {
+        classpath 'org.apache.ant:ant:1.10.5'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
+    }
+}
+
+// apply plugin: 'java'
+// apply plugin: 'application'
+// apply plugin: 'maven'
+plugins {
+    id 'java'
+    id 'idea'
+    id 'application'
+    // id 'maven-publish'
+    id 'maven'
+    id 'project-report'
+
+    // id 'net.researchgate.release' version '2.7.0'
+    // id 'com.github.ben-manes.versions' version '0.20.0'
+    // id 'com.jfrog.bintray' version '1.8.3'
+    id 'com.google.protobuf' version '0.8.6'
+}
+
+group 'com.kennyzhu'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+mainClassName = 'com.kennyzhu.micro.HelloWorld'
+
+jar {
+    manifest {
+        attributes "Main-Class": "$mainClassName",
+                'Service-Title': 'com.kennyzhu.micro.client'
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+repositories {
+    // google()
+    jcenter()
+    mavenCentral()
+    maven {
+        url 'https://dl.bintray.com/palantir/releases' // docker-compose-rule is published on bintray
+    }
+    // mavenLocal()
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+ext.versions = [
+        'jetty'    : '9.4.11.v20180605',
+        'protobuf' : '3.6.0',
+        'guice'    : '4.2.0',
+        'logback'  : '1.2.3',
+        'slf4j'    : '1.7.25'
+]
+
+dependencies {
+    // compile fileTree(dir:'libs',include:['*.jar'])
+    compile fileTree(dir:'libs',include:['stripes-guicer-0.2.jar'])
+
+    //Commons utilities
+    compile 'org.apache.commons:commons-lang3:3.7'
+    compile 'commons-io:commons-io:2.6'
+
+    //JSON
+    compile 'com.google.code.gson:gson:2.8.5'
+
+    //Guice dependency injection
+    compile "com.google.inject:guice:$versions.guice"
+    compile "com.google.inject.extensions:guice-servlet:$versions.guice"
+
+    //Protobuf
+    compile "com.google.protobuf:protobuf-java:$versions.protobuf"
+    compile "com.google.protobuf:protobuf-java-util:$versions.protobuf"
+
+    //http client
+    compile 'com.fasterxml.jackson.core:jackson-core:2.9.6'
+    compile 'javax.servlet:javax.servlet-api:4.0.1'
+    compile 'javax.validation:validation-api:2.0.1.Final'
+
+    //metrics
+    compile 'io.dropwizard.metrics:metrics-core:4.0.3'
+    compile 'io.dropwizard.metrics:metrics-jmx:4.0.3'
+
+    //Jetty
+    compile "org.eclipse.jetty:jetty-client:$versions.jetty"
+    compile "org.eclipse.jetty:jetty-server:$versions.jetty"
+    compile "org.eclipse.jetty:jetty-servlet:$versions.jetty"
+    compile "org.eclipse.jetty:jetty-http:$versions.jetty"
+    compile "org.eclipse.jetty:jetty-util:$versions.jetty"
+
+    //logging
+    compile "ch.qos.logback:logback-core:$versions.logback"
+    compile "ch.qos.logback:logback-classic:$versions.logback"
+    compile 'net.logstash.logback:logstash-logback-encoder:5.1'
+    compile "org.slf4j:slf4j-api:$versions.slf4j"
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.2.0' //carefully controlled to keep compat with go code
+    }
+}
+
+idea {
+    module {
+        sourceDirs += file("$protobuf.generatedFilesBaseDir/main/java");
+        sourceDirs += file("$protobuf.generatedFilesBaseDir/test/java");
+    }
+}
+
+compileJava {
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+}
+
+
+
+
