@@ -23,7 +23,7 @@ plugins {
 }
 
 group 'com.kennyzhu'
-version '1.0-SNAPSHOT'
+version '1.0.1'
 
 sourceCompatibility = 1.8
 mainClassName = 'com.kennyzhu.micro.HelloWorld'
@@ -31,7 +31,7 @@ mainClassName = 'com.kennyzhu.micro.HelloWorld'
 jar {
     manifest {
         attributes "Main-Class": "$mainClassName",
-                'Service-Title': 'com.kennyzhu.micro.client'
+                'Service-Title': 'com.kennyzhu.micro'
     }
 
     from {
@@ -46,7 +46,7 @@ repositories {
     maven {
         url 'https://dl.bintray.com/palantir/releases' // docker-compose-rule is published on bintray
     }
-    // mavenLocal()
+    mavenLocal()
 }
 
 task sourcesJar(type: Jar) {
@@ -101,6 +101,9 @@ dependencies {
     compile "org.eclipse.jetty:jetty-http:$versions.jetty"
     compile "org.eclipse.jetty:jetty-util:$versions.jetty"
 
+    // other http client
+    compile "com.github.kevinsawicki:http-request:6.0"
+
     //logging
     compile "ch.qos.logback:logback-core:$versions.logback"
     compile "ch.qos.logback:logback-classic:$versions.logback"
@@ -125,6 +128,25 @@ idea {
 
 compileJava {
     options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+}
+
+def localMavenRepo = 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+
+// 上传Task，Gradle会生成并上传pom.xml文件。
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url:localMavenRepo )
+
+            //构造项目的Pom文件.
+            pom.project {
+                name = project.name
+                packaging = 'jar'
+                description = 'description'
+                }
+            }
+
+        }
 }
 
 
