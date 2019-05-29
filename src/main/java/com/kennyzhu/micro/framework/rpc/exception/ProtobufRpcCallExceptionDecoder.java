@@ -16,7 +16,9 @@ package com.kennyzhu.micro.framework.rpc.exception;
 
 import com.kennyzhu.micro.framework.protobuf.ProtobufRpcResponse;
 import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.jetty.client.api.ContentResponse;
+//import org.eclipse.jetty.client.api.ContentResponse;
+import com.github.kevinsawicki.http.HttpRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +26,10 @@ public class ProtobufRpcCallExceptionDecoder implements RpcCallExceptionDecoder 
     private static final Logger logger = LoggerFactory.getLogger(ProtobufRpcCallExceptionDecoder.class);
 
     @Override
-    public RpcCallException decodeException(ContentResponse response) throws RpcCallException {
+    public RpcCallException decodeException(HttpRequest response) throws RpcCallException {
         try {
             if (response != null) {
-                byte[] data = response.getContent();
+                byte[] data = response.body().getBytes();
                 if (ArrayUtils.isEmpty(data)) {
                     logger.warn("Unable to decode: empty response received");
                     return new RpcCallException(RpcCallException.Category.InternalServerError,

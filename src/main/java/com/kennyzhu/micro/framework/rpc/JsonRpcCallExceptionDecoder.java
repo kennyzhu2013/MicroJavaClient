@@ -14,12 +14,14 @@ package com.kennyzhu.micro.framework.rpc;
  *  * 注意 本内容仅限于 中移互联网有限公司，禁止外泄以及用于其他的商业 
  *  
  */
+import com.github.kevinsawicki.http.HttpRequest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.kennyzhu.micro.framework.rpc.exception.RpcCallException;
 import com.kennyzhu.micro.framework.rpc.exception.RpcCallExceptionDecoder;
-import org.eclipse.jetty.client.api.ContentResponse;
+import com.github.kevinsawicki.http.HttpRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +29,13 @@ public class JsonRpcCallExceptionDecoder implements RpcCallExceptionDecoder {
     private static final Logger logger = LoggerFactory.getLogger(JsonRpcCallExceptionDecoder.class);
 
     @Override
-    public RpcCallException decodeException(ContentResponse response) throws RpcCallException {
+    public RpcCallException decodeException(HttpRequest response) throws RpcCallException {
         try {
             if (response != null) {
-                JsonObject json = (JsonObject) new JsonParser().parse(response.getContentAsString());
+                JsonObject json = (JsonObject) new JsonParser().parse(response.body());
 
-                // some error string define here.
-                JsonElement error = json.get("error");
+                // some error string define here, error put in message
+                JsonElement error = json.get("message");
                 if (error != null) {
                     return RpcCallException.fromJson(error.toString());
                 }

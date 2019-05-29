@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.kennyzhu.micro.framework.MethodHandlerDictionary;
+import com.kennyzhu.micro.framework.OrangeContext;
 import com.kennyzhu.micro.framework.configuration.ServiceProperties;
 import com.kennyzhu.micro.framework.rpc.HttpClientUrlWrapper;
 import com.kennyzhu.micro.framework.rpc.HttpClientWrapper;
@@ -41,6 +42,7 @@ public class BaseApiClientInectionModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(HttpClientWrapper.class).to(HttpClientUrlWrapper.class);
+        bind(OrangeContext.class);
     }
 
     protected Injector injector;

@@ -14,6 +14,7 @@
  */
 package com.kennyzhu.micro.framework.rpc;
 
+import com.github.kevinsawicki.http.HttpRequest;
 import com.google.inject.Inject;
 import com.google.protobuf.Message;
 
@@ -27,9 +28,14 @@ import com.kennyzhu.micro.framework.rpc.backoff.RetryBackOffFunction;
 import com.kennyzhu.micro.framework.rpc.exception.RpcCallException;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.BytesContentProvider;
-import org.eclipse.jetty.client.util.StringContentProvider;
+// import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.http.HttpField;
+// import org.eclipse.jetty.http.HttpFields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
 
 import static com.kennyzhu.micro.framework.jetty.RpcServlet.TYPE_JSON;
 import static com.kennyzhu.micro.framework.jetty.RpcServlet.TYPE_OCTET;
@@ -78,13 +84,25 @@ public class RpcClient<RESPONSE extends Message> {
 
         balancedPost.setHeader("Content-type", TYPE_JSON);
         //TODO: fix: Temporary workaround below until go services are more http compliant
-        balancedPost.setHeader("Connection", "close");
-        balancedPost.setContentProvider(new StringContentProvider(jsonRequest));
+        // balancedPost.setHeader("Connection", "close");
+        // balancedPost.setContentProvider(new StringContentProvider(jsonRequest));
+        balancedPost.setContentProvider( jsonRequest );
 
         logger.debug("Sending request of size {}", jsonRequest.length());
-        ContentResponse rpcResponse = clientWrapper.execute(balancedPost,
+        HttpRequest rpcResponse = clientWrapper.execute(balancedPost,
                 new JsonRpcCallExceptionDecoder(), orangeContext);
-        String rawResponse = rpcResponse.getContentAsString();
+
+        // get header .
+        for (Map.Entry<String, List<String>> header : rpcResponse.headers().entrySet() ) {
+            // logger.info("callSynchronous: http header: " + header.getKey());
+            if ( header.getKey().compareToIgnoreCase(OrangeContext.RPC_MEDIA_SERVER) == 0 ) {
+                orangeContext.setRpcMediaServerId( rpcResponse.header( header.getKey() ) );
+                logger.info("callSynchronous find response server id : {}", orangeContext.getRpcMediaServer());
+                break;
+            }
+        }
+
+        String rawResponse = rpcResponse.body();
         logger.debug("Json response from the service: {}", rawResponse);
 
         return rawResponse;// JsonRpcResponse.fromString(rawResponse).getResult().getAsString();
@@ -117,12 +135,12 @@ public class RpcClient<RESPONSE extends Message> {
         // balancedPost.setHeader("Connection", "close");
         ProtobufRpcRequest pbRequest = new ProtobufRpcRequest(methodName, request);
         byte[] protobufData = pbRequest.getProtobufData();
-        balancedPost.setContentProvider(new BytesContentProvider(protobufData));
+        balancedPost.setContentProvider( new String(protobufData) );
 
         logger.debug("Sending request of size {}", protobufData.length);
-        ContentResponse rpcResponse = clientWrapper.execute(balancedPost,
+        HttpRequest rpcResponse = clientWrapper.execute(balancedPost,
                 new ProtobufRpcCallExceptionDecoder(), orangeContext);
-        byte[] data = rpcResponse.getContent();
+        byte[] data = rpcResponse.body().getBytes();
         logger.debug("Received a proto response of size: {}", data.length);
 
         //Close connection .

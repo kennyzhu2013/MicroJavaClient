@@ -19,8 +19,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class OrangeContext {
-    public final static String CORRELATION_ID = "correlation-id";
-    private static final String RPC_MEDIA_SERVER = "X-Media-Server";
+    public final static String CORRELATION_ID = "X-Correlation-Id";
+    public final static String RPC_MEDIA_SERVER = "X-Media-Server"; // server id
 
     private String correlationId;
     private Map<String, String> properties = new HashMap<>();
@@ -29,7 +29,7 @@ public class OrangeContext {
     }
 
     public OrangeContext(Map<String, String> props) {
-        this(props == null ? null : props.get("x-correlation-id"), props);
+        this(props == null ? null : props.get(CORRELATION_ID), props);
     }
 
     public OrangeContext(String correlationId, Map<String, String> props) {
@@ -50,7 +50,6 @@ public class OrangeContext {
     public String getCorrelationId() {
         return correlationId;
     }
-
     public void setCorrelationId(String correlationId) {
         if (correlationId != null && this.correlationId == null) {
             this.correlationId = correlationId;
@@ -60,6 +59,10 @@ public class OrangeContext {
     public String getRpcMediaServer() {
         return getProperty(RPC_MEDIA_SERVER);
     }
+    public void setRpcMediaServerId(String serverId) {
+        setProperty(RPC_MEDIA_SERVER, serverId);
+    }
+
     public void setProperty(String key, String value) {
         properties.put(key.toLowerCase(), value);
     }

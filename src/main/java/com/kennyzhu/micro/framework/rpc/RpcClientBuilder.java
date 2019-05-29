@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory;
 public class RpcClientBuilder<RESPONSE extends Message> {
     private static final Logger logger = LoggerFactory.getLogger(RpcClientBuilder.class);
 
-    public final static int DEFAULT_RETRIES = 1;
-    public final static int DEFAULT_RESPONSE_TIMEOUT = 1000;
+    public final static int DEFAULT_RETRIES = 3;
+    public final static int DEFAULT_RESPONSE_TIMEOUT = 3000; // milliseconds
 
     private final Injector injector;
     private String serviceName;

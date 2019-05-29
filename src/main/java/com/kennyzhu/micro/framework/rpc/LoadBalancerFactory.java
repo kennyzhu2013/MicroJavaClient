@@ -41,6 +41,7 @@ public class LoadBalancerFactory {
     public synchronized LoadBalancer getLoadBalancer(String serviceName) {
         LoadBalancer retval = loadBalancers.get(serviceName);
         if (retval == null) {
+            logger.debug("LoadBalancerFactory build loadbalancer:" + serviceName);
             retval = buildLoadBalancer(serviceName);
         }
         return retval;

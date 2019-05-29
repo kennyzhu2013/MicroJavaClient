@@ -65,6 +65,7 @@ public class CircuitBreakerState {
     }
 
     public synchronized boolean canServeRequests(boolean oneAlreadyQueued) {
+        logger.debug("canServeRequests, state:"+state);
         switch (state) {
             case PRIMARY_HEALTHY:
             case SECONDARY_HEALTHY:

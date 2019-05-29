@@ -15,6 +15,7 @@
 package com.kennyzhu.micro.framework.rpc;
 
 import com.google.inject.Inject;
+import com.sun.corba.se.spi.ior.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -143,7 +144,8 @@ public class LoadBalancerImpl implements LoadBalancer {
             }
         }
         mutex.readLock().lock();
-        logger.info("getHealthyInstance zones : {}", availabilityZones);
+        logger.info("getHealthyInstance zones : {}, objectId : {}",
+                availabilityZones, this.hashCode());
         try {
             for (AvailabilityZone az : availabilityZones) {
                 ServiceEndpoint next = az.nextEndpoint();
@@ -152,6 +154,7 @@ public class LoadBalancerImpl implements LoadBalancer {
                     return next;
                 }
             }
+            logger.debug("Returning instance null");
             return null;
         } finally {
             mutex.readLock().unlock();

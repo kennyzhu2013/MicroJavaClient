@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 // support multithread ops.
 public class ServiceEndpointList {
+    public  boolean bRobinSelect = true;
     private static final Logger logger = LoggerFactory.getLogger(ServiceEndpointList.class);
 
     protected volatile int size = 0;
@@ -55,17 +56,27 @@ public class ServiceEndpointList {
         mutex.writeLock().lock(); //needs write b/c it calls canServeRequests
         try {
             ServiceEndpointNode retval = returnNext;
+
+            // to loop service if only one?..
             for (int i = 0; i < size; i++) {
                 if (retval.value.canServeRequests()) {
                     retval.value.incrementServingRequests();
                     returnNext = retval.next;
+                    logger.info("nextAvailable: available node is:" + retval.value);
                     return retval.value;
                 } else {
                     returnNext = returnNext.next;
                     retval = returnNext;
                 }
             }
+
+            // if only one, just return ,
+            if (bRobinSelect) {
+                logger.info("nextAvailable: round bin select node is:" + retval.value);
+                return retval.value;
+            }
             //if we got here, there are none available
+            logger.info("nextAvailable: none available , the next node is:" + returnNext);
             return null;
         } finally {
             mutex.writeLock().unlock();

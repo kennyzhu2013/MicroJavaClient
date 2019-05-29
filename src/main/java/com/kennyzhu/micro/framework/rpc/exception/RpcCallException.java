@@ -46,6 +46,7 @@ public class RpcCallException extends Exception {
         Conflict(409, false),                 //resource conflict
         InternalServerError(500, true),       //unexpected exception
         BackendError(501, false),             //business logic failure
+        HttpRequestError(503, false),             //HttpRequest failure
         RequestTimedOut(504, true);
 
         private int httpStatus;

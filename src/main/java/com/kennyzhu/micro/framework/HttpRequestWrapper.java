@@ -14,10 +14,13 @@
  */
 package com.kennyzhu.micro.framework;
 
+import com.google.common.primitives.Bytes;
+import com.google.protobuf.ByteString;
 import com.kennyzhu.micro.framework.rpc.ServiceEndpoint;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentProvider;
-import org.eclipse.jetty.client.api.Request;
+//import org.eclipse.jetty.client.HttpClient;
+// import org.eclipse.jetty.client.api.ContentProvider;
+//import org.eclipse.jetty.client.api.Request;
+import com.github.kevinsawicki.http.HttpRequest;
 import org.slf4j.MDC;
 
 import java.net.URI;
@@ -26,32 +29,38 @@ import java.util.Map;
 
 
 public class HttpRequestWrapper {
-    private URI uri;
+    private String uri;
     private String method;
     private ServiceEndpoint instance;
-    private ContentProvider contentProvider;
+    private String contentProvider;
     private Map<String, String> headers = new HashMap<>();
 
     public HttpRequestWrapper(String method, ServiceEndpoint instance) {
         this.method = method;
         this.instance = instance;
 
-        setUri(URI.create("http://" + instance.getHostAndPort() + "/"));
+        setUri("http://" + instance.getHostAndPort() + "/");
         setHeader("X-Correlation-Id", MDC.get(OrangeContext.CORRELATION_ID));
+        setHeader("X-Media-Server", MDC.get(OrangeContext.RPC_MEDIA_SERVER));
     }
 
     public HttpRequestWrapper(String method, ServiceEndpoint instance, String urlSuffix) {
         this.method = method;
         this.instance = instance;
 
-        setUri(URI.create("http://" + instance.getHostAndPort() + "/" + urlSuffix));
+        setUri("http://" + instance.getHostAndPort() + "/" + urlSuffix);
         setHeader("X-Correlation-Id", MDC.get(OrangeContext.CORRELATION_ID));
+        setHeader("X-Media-Server", MDC.get(OrangeContext.RPC_MEDIA_SERVER));
     }
 
-    public Request newRequest(HttpClient httpClient) {
-        Request request = httpClient.newRequest(uri);
-        request.content(contentProvider).method(method);
-
+    // only support get and post here..
+    public HttpRequest newRequest() {
+        HttpRequest request = HttpRequest.post(uri);
+//        if ( method == "GET" ) {
+//            request = HttpRequest.get(uri);
+//        } else {
+//            request = HttpRequest.post(uri);
+//        }
         for (String key : headers.keySet()) {
             if (! "User-Agent".equals(key)) {
                 request.header(key, headers.get(key));
@@ -73,11 +82,14 @@ public class HttpRequestWrapper {
         return instance;
     }
 
-    public void setUri(URI uri) {
+    public void setUri(String uri) {
         this.uri = uri;
     }
+    public String getUri() {
+         return this.uri;
+    }
 
-    public void setContentProvider(ContentProvider contentProvider) {
+    public void setContentProvider(String contentProvider) {
         this.contentProvider = contentProvider;
     }
 
@@ -89,7 +101,7 @@ public class HttpRequestWrapper {
         this.headers = headers;
     }
 
-    public ContentProvider getContentProvider() {
+    public String getContentProvider() {
         return contentProvider;
     }
 }

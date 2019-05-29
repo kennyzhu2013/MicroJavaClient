@@ -1,5 +1,6 @@
 package com.kennyzhu.micro.module;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.kennyzhu.micro.framework.OrangeContext;
 import com.kennyzhu.micro.framework.configuration.ServiceProperties;
@@ -25,13 +26,30 @@ import com.kennyzhu.micro.framework.rpc.exception.RpcCallException;
 public class JsonHttpClientService {
     protected RpcClientFactory  clientFactory;
     protected ServiceProperties  properties;
+    protected OrangeContext context;
 
     @Inject
-    public JsonHttpClientService(RpcClientFactory factory, ServiceProperties props) {
+    public JsonHttpClientService(RpcClientFactory factory, ServiceProperties props, OrangeContext context) {
         this.clientFactory = factory;
         this.properties = props;
+        this.context = context;
     }
 
+    // for test reserved.
+    public void SetServerId(String serverId) {
+        if ( serverId == null  || serverId == "" ) {
+            return;
+        }
+
+        if ( context.getRpcMediaServer() == null  || context.getRpcMediaServer() == "" ) {
+            context.setRpcMediaServerId(serverId);
+        }
+    }
+
+    // get server id
+    public String GetServerId() {
+        return context.getRpcMediaServer();
+    }
 
     // send to server and get response.
     // @methodSuffix: for example: "Preferences/GetPreferencesList?limit=2&index=1"
@@ -40,16 +58,16 @@ public class JsonHttpClientService {
         // RpcClient<Hello.Response> rpcClient = clientFactory.newClient("go.micro.api.media-gateway", "Say.Hello", Hello.Response.class).build();
         // if not use protobuf, set hello default.
         RpcClient<RpcEnvelope.Response> rpcClient = clientFactory.newClient(properties.getServiceName(), methodSuffix, RpcEnvelope.Response.class).build();
-
+        // int retryCount = 0;
         try {
             // 服务端Netty在测试时遇到大量java.nio.channels.ClosedChannelException异常。有可能是你的代码有问题，也有可能仅是客户端主动关闭了连接，导致服务端的写失败..
             RpcEnvelope.Request request = RpcEnvelope.Request.newBuilder().setServiceMethod(methodSuffix).setSequenceNumber(0).build();
-            String response = rpcClient.callSynchronous(jsonSend, new OrangeContext());
-            System.out.println(response);
-            System.out.println("Call successed!");
+            String response = rpcClient.callSynchronous(jsonSend, context);
+            System.out.println("rpcClient.callSynchronous returned:" + context.getRpcMediaServer());
             return response;
         }catch (RpcCallException ex) {
-            System.out.println("\nGetting configuration failed, will retry. {}");
+           // System.out.printf("\nGetting configuration failed, will retry. {}", retryCount);
+            //retryCount ++;
             System.out.println(ex.toString());
             return  ex.toString();
         }

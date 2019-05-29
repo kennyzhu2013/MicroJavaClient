@@ -14,14 +14,15 @@
  */
 package com.kennyzhu.micro.framework.rpc.exception;
 
-import org.eclipse.jetty.client.api.ContentResponse;
+import com.github.kevinsawicki.http.HttpRequest;
+// import org.eclipse.jetty.client.api.ContentResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public interface RpcCallExceptionDecoder {
-   RpcCallException decodeException(ContentResponse response) throws RpcCallException;
+   RpcCallException decodeException(HttpRequest response) throws RpcCallException;
 
     static String exceptionToString(Throwable ex) {
         if (ex == null) {

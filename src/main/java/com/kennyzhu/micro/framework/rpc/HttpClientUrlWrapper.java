@@ -6,8 +6,8 @@ import com.kennyzhu.micro.framework.OrangeContext;
 import com.kennyzhu.micro.framework.configuration.ServiceProperties;
 import com.kennyzhu.micro.framework.rpc.exception.RpcCallException;
 import com.kennyzhu.micro.framework.rpc.exception.RpcCallExceptionDecoder;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
+//import org.eclipse.jetty.client.HttpClient;
+//import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -37,8 +37,8 @@ public class HttpClientUrlWrapper extends HttpClientWrapper {
     private static final Logger logger = LoggerFactory.getLogger(HttpClientUrlWrapper.class);
 
     @Inject
-    public HttpClientUrlWrapper(ServiceProperties serviceProps, HttpClient httpClient) {
-        super(serviceProps, httpClient);
+    public HttpClientUrlWrapper(ServiceProperties serviceProps) {
+        super(serviceProps);
     }
 
     @Override
@@ -48,21 +48,23 @@ public class HttpClientUrlWrapper extends HttpClientWrapper {
         ServiceEndpoint instance = loadBalancer.getHealthyInstance();
         if (instance == null) {
             throw new RpcCallException(RpcCallException.Category.InternalServerError,
-                    "No available instance of " + loadBalancer.getServiceName()).
+                    "HttpClientUrlWrapper createHttpPost failed none available instance of " + loadBalancer.getServiceName()).
                     withSource(serviceProps.getServiceName());
         }
         return new HttpRequestWrapper("POST", instance, client.getMethodName() );
     }
 
     @Override
-    protected HttpRequestWrapper createHttpPost(HttpRequestWrapper previous, List<ServiceEndpoint> triedEndpoints)
-            throws RpcCallException {
+    protected HttpRequestWrapper createHttpPost(HttpRequestWrapper previous, List<ServiceEndpoint> triedEndpoints) {
         ServiceEndpoint instance = loadBalancer.getHealthyInstanceExclude(triedEndpoints);
         if (instance == null) {
-            throw new RpcCallException(RpcCallException.Category.InternalServerError,
-                    "RpcCallException calling " + loadBalancer.getServiceName() + ", no available instance").
-                    withSource(serviceProps.getServiceName());
+//            throw new RpcCallException(RpcCallException.Category.InternalServerError,
+//                    "HttpClientUrlWrapper RpcCallException calling " + loadBalancer.getServiceName() + ", no available instance").
+//                    withSource(serviceProps.getServiceName());
+            logger.info("HttpClientUrlWrapper RpcCallException calling " + loadBalancer.getServiceName() + ", no available instance");
+            return null;
         }
+
         //TODO: There may still be a problem where retries are setting chunked encoding
         // or the content-length gets munged
         HttpRequestWrapper retval =  new HttpRequestWrapper("POST", instance, client.getMethodName());

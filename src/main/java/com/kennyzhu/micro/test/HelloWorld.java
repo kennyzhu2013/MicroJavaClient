@@ -37,7 +37,7 @@ public class HelloWorld {
         LoadBalancerUpdate balancerUpdate = new LoadBalancerUpdate();
 
         // write f5 address here.
-        balancerUpdate.addNewService(new ServiceEndpoint(executor, "120.197.230.65:8408", "microdc"));
+        balancerUpdate.addNewService(new ServiceEndpoint(executor, "10.153.90.11:8400", "media-gateway"));
         loadBalancer.updateServiceEndpoints(balancerUpdate);
 
         // write your process
@@ -52,13 +52,13 @@ public class HelloWorld {
         ServiceProperties propsTemp = new ServiceProperties();
 
         // registry server， not usable now, just for future ...
-        propsTemp.addProperty(ServiceProperties.REGISTRY_SERVER_KEY, "120.197.230.65:8500");
-        propsTemp.addProperty("registry", "consul"); // etcd, etcd-v3, zookeeper and so on.
+        // propsTemp.addProperty(ServiceProperties.REGISTRY_SERVER_KEY, "120.197.230.65:8500");
+        // propsTemp.addProperty("registry", "consul"); // etcd, etcd-v3, zookeeper and so on.
         propsTemp.setServiceName("go.micro.api.media-gateway");
 
         //app init
         HelloWorld helloApp = new HelloWorld(propsTemp);
-        System.out.println("Hello Gradle");
+        System.out.println("Finished first call.");
     }
 
     // some release ops.
@@ -88,13 +88,20 @@ class GreeterInjectionModule extends BaseApiClientInectionModule {
         Gson gson = new Gson();
         HelloMessage message = new HelloMessage();
         String jstring = gson.toJson(message);
-        JsonHttpClientService httpClientService = injector.getInstance(JsonHttpClientService.class);
+
 
         long startTime = System.currentTimeMillis();
-        for (int i = 0; i < 1; i++) {
-            httpClientService.SendToServer(jstring, "Preferences/GetPreferencesList?limit=2&index=1");
+        String serverId = "";
+        for (int i = 0; i < 100; i++) {
+            JsonHttpClientService httpClientService = injector.getInstance(JsonHttpClientService.class);
+            httpClientService.SetServerId( serverId );
+            String response = httpClientService.SendToServer(jstring, "v1/endpoint/statis");
+            serverId = httpClientService.GetServerId();
+            System.out.println(response);
+            System.out.println("Call successed,serverid: " + serverId);
         }
         long endTime = System.currentTimeMillis();
+
         System.out.println("程序运行时间：" + (endTime - startTime) + "ms");
     }
 
